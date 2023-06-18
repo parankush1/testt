@@ -1,160 +1,66 @@
-# Byte-compiled / optimized / DLL files
-__pycache__/
-*.py[cod]
-*$py.class
+from flask import Flask, request, jsonify
+from PyPDF2 import PdfFileMerger, PdfFileReader, PdfFileWriter
 
-# C extensions
-*.so
+app = Flask(__name__)
 
-# Distribution / packaging
-.Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-share/python-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
-MANIFEST
+@app.route('/merge', methods=['POST'])
+def merge_pdf():
+    merged_pdf = PdfFileMerger()
+    
+    pdf_files = request.files.getlist('files[]')
+    
+    for pdf_file in pdf_files:
+        merged_pdf.append(pdf_file)
+    
+    output_pdf_path = 'merged.pdf'
+    merged_pdf.write(output_pdf_path)
+    merged_pdf.close()
+    
+    return jsonify({'result': 'success', 'output_pdf': output_pdf_path})
 
-# PyInstaller
-#  Usually these files are written by a python script from a template
-#  before PyInstaller builds the exe, so as to inject date/other infos into it.
-*.manifest
-*.spec
+@app.route('/split', methods=['POST'])
+def split_pdf():
+    input_pdf = request.files['file']
+    page_range = request.form['page_range']
+    
+    input_pdf_path = 'input.pdf'
+    input_pdf.save(input_pdf_path)
+    
+    pdf = PdfFileReader(input_pdf_path)
+    
+    start_page, end_page = map(int, page_range.split('-'))
+    
+    output_pdf = PdfFileWriter()
+    
+    for page_number in range(start_page - 1, end_page):
+        output_pdf.addPage(pdf.getPage(page_number))
+    
+    output_pdf_path = 'split.pdf'
+    with open(output_pdf_path, 'wb') as output_file:
+        output_pdf.write(output_file)
+    
+    return jsonify({'result': 'success', 'output_pdf': output_pdf_path})
 
-# Installer logs
-pip-log.txt
-pip-delete-this-directory.txt
+@app.route('/arrange', methods=['POST'])
+def arrange_pdf():
+    input_pdf = request.files['file']
+    page_order = list(map(int, request.form.getlist('page_order[]')))
+    
+    input_pdf_path = 'input.pdf'
+    input_pdf.save(input_pdf_path)
+    
+    pdf = PdfFileReader(input_pdf_path)
+    
+    output_pdf = PdfFileWriter()
+    
+    for page_number in page_order:
+        output_pdf.addPage(pdf.getPage(page_number - 1))
+    
+    output_pdf_path = 'arranged.pdf'
+    with open(output_pdf_path, 'wb') as output_file:
+        output_pdf.write(output_file)
+    
+    return jsonify({'result': 'success', 'output_pdf': output_pdf_path})
 
-# Unit test / coverage reports
-htmlcov/
-.tox/
-.nox/
-.coverage
-.coverage.*
-.cache
-nosetests.xml
-coverage.xml
-*.cover
-*.py,cover
-.hypothesis/
-.pytest_cache/
-cover/
-
-# Translations
-*.mo
-*.pot
-
-# Django stuff:
-*.log
-local_settings.py
-db.sqlite3
-db.sqlite3-journal
-
-# Flask stuff:
-instance/
-.webassets-cache
-
-# Scrapy stuff:
-.scrapy
-
-# Sphinx documentation
-docs/_build/
-
-# PyBuilder
-.pybuilder/
-target/
-
-# Jupyter Notebook
-.ipynb_checkpoints
-
-# IPython
-profile_default/
-ipython_config.py
-
-# pyenv
-#   For a library or package, you might want to ignore these files since the code is
-#   intended to run in multiple environments; otherwise, check them in:
-# .python-version
-
-# pipenv
-#   According to pypa/pipenv#598, it is recommended to include Pipfile.lock in version control.
-#   However, in case of collaboration, if having platform-specific dependencies or dependencies
-#   having no cross-platform support, pipenv may install dependencies that don't work, or not
-#   install all needed dependencies.
-#Pipfile.lock
-
-# poetry
-#   Similar to Pipfile.lock, it is generally recommended to include poetry.lock in version control.
-#   This is especially recommended for binary packages to ensure reproducibility, and is more
-#   commonly ignored for libraries.
-#   https://python-poetry.org/docs/basic-usage/#commit-your-poetrylock-file-to-version-control
-#poetry.lock
-
-# pdm
-#   Similar to Pipfile.lock, it is generally recommended to include pdm.lock in version control.
-#pdm.lock
-#   pdm stores project-wide configurations in .pdm.toml, but it is recommended to not include it
-#   in version control.
-#   https://pdm.fming.dev/#use-with-ide
-.pdm.toml
-
-# PEP 582; used by e.g. github.com/David-OConnor/pyflow and github.com/pdm-project/pdm
-__pypackages__/
-
-# Celery stuff
-celerybeat-schedule
-celerybeat.pid
-
-# SageMath parsed files
-*.sage.py
-
-# Environments
-.env
-.venv
-env/
-venv/
-ENV/
-env.bak/
-venv.bak/
-
-# Spyder project settings
-.spyderproject
-.spyproject
-
-# Rope project settings
-.ropeproject
-
-# mkdocs documentation
-/site
-
-# mypy
-.mypy_cache/
-.dmypy.json
-dmypy.json
-
-# Pyre type checker
-.pyre/
-
-# pytype static type analyzer
-.pytype/
-
-# Cython debug symbols
-cython_debug/
-
-# PyCharm
-#  JetBrains specific template is maintained in a separate JetBrains.gitignore that can
-#  be found at https://github.com/github/gitignore/blob/main/Global/JetBrains.gitignore
-#  and can be added to the global gitignore or merged into this file.  For a more nuclear
-#  option (not recommended) you can uncomment the following to ignore the entire idea folder.
-#.idea/
+if __name__ == '__main__':
+    app.run()
