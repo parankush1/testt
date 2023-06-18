@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>PDF Manipulation</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $('#mergeForm').submit(function(event) {
+                event.preventDefault();
+                
+                var formData = new FormData(this);
+                
+                $.ajax({
+                    url: '/merge',
+                    type: 'POST',
+                    data: formData,
+                    cache: false,
+                    contentType: false,
+                    processData: false,
+                    success: function(response) {
+                        if (response.result === 'success') {
+                            window.location.href = response.output_pdf;
+                        }
+                    }
+                });
+            });
+
+            $('#splitForm').submit(function(event) {
+                event.preventDefault();
+                
+                var formData = new FormData(this);
+                
+                $.ajax({
+                    url: '/split',
+                    type: 'POST',
+                    data: formData,
+                    cache: false,
+                    contentType: false,
+                    processData: false,
+                    success: function(response) {
+                        if (response.result === 'success') {
+                            window.location.href = response.output_pdf;
+                        }
+                    }
+                });
+            });
+
+            $('#arrangeForm').submit(function(event) {
+                event.preventDefault();
+                
+                var formData = new FormData(this);
+                
+                $.ajax({
+                    url: '/arrange',
+                    type: 'POST',
+                    data: formData,
+                    cache: false,
+                    contentType: false,
+                    processData: false,
+                    success: function(response) {
+                        if (response.result === 'success') {
+                            window.location.href = response.output_pdf;
+                        }
+                    }
+                });
+            });
+        });
+    </script>
+</head>
+<body>
+    <h1>PDF Manipulation</h1>
+    
+    <h2>Merge PDF</h2>
+    <form id="mergeForm" enctype="multipart/form-data">
+        <input type="file" name="files[]" multiple><br>
+        <button type="submit">Merge</button>
+    </form>
+    
+    <h2>Split PDF</h2>
+    <form id="splitForm" enctype="multipart/form-data">
+        <input type="file" name="file"><br>
+        Page Range (e.g., 1-5): <input type="text" name="page_range"><br>
+        <button type="submit">Split</button>
+    </form>
+    
+    <h2>Rearrange PDF Pages</h2>
+    <form id="arrangeForm" enctype="multipart/form-data">
+        <input type="file" name="file"><br>
+        Page Order (e.g., 3,1,2): <input type="text" name="page_order[]" multiple><br>
+        <button type="submit">Arrange</button>
+    </form>
+</body>
+</html>
