@@ -1,1 +1,28 @@
-parankush1.github.io
+name: Deploy Backend
+
+on:
+  push:
+    branches:
+      - main  # Change this to your branch name if different
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.x  # Specify the Python version you require
+
+      - name: Install dependencies
+        run: pip install -r http://parankush1.github.io/  # Modify this to your requirements file path
+
+      - name: Start Flask server
+        run: |
+          export FLASK_APP=app.py  # Replace app.py with the name of your Flask application file
+          export FLASK_ENV=production
+          flask run --host=0.0.0.0 --port=5000  # Modify the host and port as needed
